@@ -1,17 +1,13 @@
 ﻿using ForumFuncionario.Api.Model.Entity;
 using ForumFuncionario.Api.Repository.Interface;
 
-public class EmployeeService : IEmployeeService
+namespace ForumFuncionario.Api.Service
 {
-    private readonly IEmployeeRepository _employeeRepository;
-
-    public EmployeeService(IEmployeeRepository employeeRepository)
+    public class EmployeeService(IEmployeeRepository employeeRepository) : IEmployeeService
     {
-        _employeeRepository = employeeRepository;
-    }
-
-    public Task<IEnumerable<Employee>> GetEmployeesByMonthAsync()
-    {
-        return _employeeRepository.GetEmployeesByMonthAsync();
+        public Task<IEnumerable<Employee>> GetEmployeesByMonthAsync()
+        {
+            return employeeRepository.GetEmployeesByMonthAsync();
+        }
     }
 }

@@ -1,5 +1,6 @@
 using ForumFuncionario.Api.Repository;
 using ForumFuncionario.Api.Repository.Interface;
+using ForumFuncionario.Api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // Adiciona logging no console
 
 // Configuração do CORS para permitir qualquer origem
 builder.Services.AddCors(options =>

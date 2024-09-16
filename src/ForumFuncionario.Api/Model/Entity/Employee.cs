@@ -3,7 +3,10 @@
     public class Employee
     {
         public string Nome { get; set; }
-        public DateTime Dt_Nasc { get; set; }
+        public int Dia { get; set; }
+        public int Mes { get; set; }
         public string Filial { get; set; }
+        public string CttDesc01 { get; set; }
     }
+
 }
