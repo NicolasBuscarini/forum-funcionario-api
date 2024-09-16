@@ -6,7 +6,7 @@
         public int Dia { get; set; }
         public int Mes { get; set; }
         public string Filial { get; set; }
-        public string CttDesc01 { get; set; }
+        public string Descricao { get; set; }
     }
 
 }

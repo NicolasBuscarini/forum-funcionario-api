@@ -15,14 +15,14 @@ namespace ForumFuncionario.Api.Repository
                 var sql = @"SELECT 
                                 RA_NOME AS nome,  
                                 DAY(RA_NASC) AS Dia,  
-                                MONTH(RA_NASC) AS Mês,
+                                MONTH(RA_NASC) AS Mes,
                                 CASE
                                     WHEN RA_FILIAL = '0101' THEN 'ANÁPOLIS-GO' 
                                     WHEN RA_FILIAL = '0103' THEN 'SÃO PAULO-SP'
                                     WHEN RA_FILIAL = '0201' THEN 'S.B.C-SP'
                                     ELSE 'OUTRO' -- Adicione um caso default se necessário
                                 END AS filial, 
-                                CTT_DESC01
+                                CTT_DESC01 AS Descricao
                             FROM SRA010 AS SRA 
                             INNER JOIN CTT010 AS CTT  
                                 ON SUBSTRING(RA_FILIAL, 1, 2) = SUBSTRING(CTT_FILIAL, 1, 2) 
