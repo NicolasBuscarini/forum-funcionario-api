@@ -10,9 +10,8 @@ namespace ForumFuncionario.Api.Repository
     {
         public async Task<IEnumerable<Employee>> GetEmployeesByMonthAsync()
         {
-            using (IDbConnection dbConnection = new SqlConnection(connectionString))
-            {
-                var sql = @"SELECT 
+            using IDbConnection dbConnection = new SqlConnection(connectionString);
+            var sql = @"SELECT 
                                 RA_NOME AS nome,  
                                 DAY(RA_NASC) AS Dia,  
                                 MONTH(RA_NASC) AS Mes,
@@ -33,8 +32,7 @@ namespace ForumFuncionario.Api.Repository
                                 AND MONTH(RA_NASC) = MONTH(GETDATE()) 
                             ORDER BY RA_FILIAL, DAY(RA_NASC)";
 
-                return await dbConnection.QueryAsync<Employee>(sql);
-            }
+            return await dbConnection.QueryAsync<Employee>(sql);
         }
     }
 }

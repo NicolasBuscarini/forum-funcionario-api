@@ -2,9 +2,11 @@ using ForumFuncionario.Api.Repository;
 using ForumFuncionario.Api.Repository.Interface;
 using ForumFuncionario.Api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using ForumFuncionario.Api.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,19 +29,32 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Configure o Entity Framework com o provedor do banco de dados
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("EntityConnection"))); // Use o provedor adequado ao seu banco de dados
+
+// Injeção de dependência para o repository e service
 builder.Services.AddSingleton<IEmployeeRepository>(provider =>
     new EmployeeRepository(builder.Configuration.GetConnectionString("DefaultConnection")!));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-
+//using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+//{
+//    using (var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())
+//    {
+//        if (dbContext.Database.GetPendingMigrations().Any())
+//        {
+//            dbContext.Database.Migrate();
+//        }
+//    }
+//}
+builder.Services.AddScoped<IPostRepository, PostRepository>();
+builder.Services.AddScoped<IPostService, PostService>();
 
 // Configure Swagger/OpenAPI for JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    // Define the Swagger document with basic API information
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "JWT Authentication API", Version = "v1" });
-
-    // Add security definition for JWT Bearer tokens
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme",
@@ -48,8 +63,6 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         In = ParameterLocation.Header
     });
-
-    // Require JWT Bearer token for accessing API endpoints
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -67,19 +80,32 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Add JWT authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+
+        ValidateLifetime = true
+    };
+});
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthorization();
 
@@ -88,7 +114,6 @@ var app = builder.Build();
 // Configure o pipeline HTTP.
 app.UseCors("AllowAllOrigins");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

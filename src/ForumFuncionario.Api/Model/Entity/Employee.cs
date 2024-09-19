@@ -8,5 +8,4 @@
         public string Filial { get; set; }
         public string Descricao { get; set; }
     }
-
 }
