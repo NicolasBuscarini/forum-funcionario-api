@@ -37,16 +37,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IEmployeeRepository>(provider =>
     new EmployeeRepository(builder.Configuration.GetConnectionString("DefaultConnection")!));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-//using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-//{
-//    using (var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())
-//    {
-//        if (dbContext.Database.GetPendingMigrations().Any())
-//        {
-//            dbContext.Database.Migrate();
-//        }
-//    }
-//}
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    using (var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())
+    {
+        if (dbContext.Database.GetPendingMigrations().Any())
+        {
+            dbContext.Database.Migrate();
+        }
+    }
+}
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IPostService, PostService>();
 
