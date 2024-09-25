@@ -29,14 +29,12 @@ builder.Services.AddCors(options =>
         });
 });
 
+var conectionEntity = builder.Configuration.GetConnectionString("EntityConnection");
+
 // Configure o Entity Framework com o provedor do banco de dados
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("EntityConnection"))); // Use o provedor adequado ao seu banco de dados
+    options.UseSqlServer(conectionEntity)); // Use o provedor adequado ao seu banco de dados
 
-// Injeção de dependência para o repository e service
-builder.Services.AddSingleton<IEmployeeRepository>(provider =>
-    new EmployeeRepository(builder.Configuration.GetConnectionString("DefaultConnection")!));
-builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
     using (var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())
@@ -47,6 +45,11 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
         }
     }
 }
+
+// Injeção de dependência para o repository e service
+builder.Services.AddSingleton<IEmployeeRepository>(provider =>
+    new EmployeeRepository(builder.Configuration.GetConnectionString("DefaultConnection")!));
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IPostService, PostService>();
 

@@ -1,26 +1,15 @@
 ﻿using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
 namespace ForumFuncionario.Api.Model.Enum
 {
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum CategoriaEnum
     {
         Rh,
-        Infra,
-        Admissao,
+        Suporte,
         Financeiro,
         Marketing,
-        Tecnologia,
-        Comercial,
-        Juridico,
-        Operacional,
-        Treinamento,
-        Compras,
-        Vendas,
-        Atendimento,
-        Projetos,
+        FiquePorDentro,
         Qualidade,
-        PesquisaDesenvolvimento
     }
 }

@@ -106,16 +106,25 @@ namespace ForumFuncionario.Api.Controllers
             var authSigningKey = new SymmetricSecurityKey(key);
             var expiresTime = DateTime.UtcNow.AddHours(3);
 
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                expires: expiresTime,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-            );
+            // Adiciona a claim com o nome do usuário
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, username) // Adiciona a claim com o nome do usuário
+                }),
+                Expires = expiresTime,
+                SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
 
+            var token = tokenHandler.CreateToken(tokenDescriptor);
             _logger.LogInformation("Token JWT gerado com sucesso para o usuário: {Username}", username);
+
             return tokenHandler.WriteToken(token);
         }
+
     }
 
     public record LoginRequest(string Username, string Password);

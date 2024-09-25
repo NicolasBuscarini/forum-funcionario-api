@@ -26,8 +26,10 @@ namespace ForumFuncionario.Api.Controllers
                 return BadRequest(ModelState);
             }
 
+            var username = User.Identity!.Name ?? "Anonymous";
+
             // Chama o serviço para criar o post
-            var post = await _postService.CreatePostAsync(request.Title, request.Body, request.Categoria, request.Tags);
+            var post = await _postService.CreatePostAsync(request.Title, request.Body, request.Categoria, request.Tags, username);
 
             if (post == null)
             {
@@ -35,6 +37,36 @@ namespace ForumFuncionario.Api.Controllers
             }
 
             return Ok(post);
+        }
+
+        // GET api/post/categoria/{categoria}
+        [HttpGet("categoria/{categoria}")]
+        [Authorize]
+        public async Task<IActionResult> GetPostsByCategoria(string categoria)
+        {
+            var posts = await _postService.GetPostsByCategoriaAsync(categoria);
+
+            if (posts == null || !posts.Any())
+            {
+                return NotFound("Nenhum post encontrado para essa categoria.");
+            }
+
+            return Ok(posts);
+        }
+
+        // GET api/post/recentes
+        [HttpGet("recentes")]
+        [Authorize]
+        public async Task<IActionResult> GetLatestPostsByCategoria()
+        {
+            var latestPosts = await _postService.GetLatestPostsByCategoriaAsync();
+
+            if (latestPosts == null || !latestPosts.Any())
+            {
+                return NotFound("Nenhum post recente encontrado.");
+            }
+
+            return Ok(latestPosts);
         }
     }
 
