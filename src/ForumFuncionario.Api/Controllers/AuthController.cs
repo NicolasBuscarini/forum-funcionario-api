@@ -31,57 +31,62 @@ namespace ForumFuncionario.Api.Controllers
                 return BadRequest(new { Mensagem = "Nome de usuário ou senha não podem estar vazios" });
             }
 
+            // Obtém o NOME_DO_DOMINIO da variável de ambiente ou do appsettings.json
+            string domainName = _configuration["AD:DomainName"] ?? "WORKGROUP";
+
+            if (string.IsNullOrEmpty(domainName))
+            {
+                _logger.LogError("NOME_DO_DOMINIO não configurado.");
+                return StatusCode(500, new { Mensagem = "Erro interno: NOME_DO_DOMINIO não configurado." });
+            }
+
             // Autentica no AD usando LDAP
             _logger.LogInformation("Iniciando autenticação para o usuário: {Username}", request.Username);
-            using PrincipalContext context = new PrincipalContext(ContextType.Machine);
+            using PrincipalContext context = new PrincipalContext(ContextType.Domain, domainName);
             bool isValid = context.ValidateCredentials(request.Username, request.Password);
 
             if (isValid)
             {
-                // Recupera informações adicionais do usuário
-                using UserPrincipal userPrincipal = UserPrincipal.FindByIdentity(context, request.Username);
-
-                if (userPrincipal != null)
+                try
                 {
+                    // Simulando a recuperação de informações adicionais do usuário (opcional)
                     var userInfo = new
                     {
-                        Username = userPrincipal.SamAccountName,    // Nome de usuário
-                        FullName = userPrincipal.DisplayName,       // Nome completo
-                        Email = userPrincipal.EmailAddress,         // Email do usuário
-                        Groups = userPrincipal.GetAuthorizationGroups().Select(g => g.Name).ToList() // Grupos do AD
+                        Username = request.Username
+                        // Adicione outras informações conforme necessário
                     };
 
-                    var token = GenerateJwtToken(userPrincipal.SamAccountName);
+                    var token = GenerateJwtToken(request.Username);
                     _logger.LogInformation("Usuário {Username} autenticado com sucesso.", request.Username);
 
                     return Ok(new
                     {
                         Mensagem = "Usuário autenticado com sucesso",
                         Token = token,
-                        DetalhesDoUsuario = userInfo // Retorna as informações adicionais do usuário
+                        DetalhesDoUsuario = userInfo
                     });
                 }
-                else
+                catch (Exception ex) // Tratamento de exceção
                 {
-                    _logger.LogError("Falha ao recuperar as informações do usuário {Username}.", request.Username);
+                    _logger.LogError(ex, "Falha ao recuperar as informações do usuário {Username}.", request.Username);
+                    return StatusCode(500, new { Mensagem = "Erro interno ao processar a solicitação" });
                 }
             }
             else
             {
                 _logger.LogWarning("Tentativa de login inválida para o usuário {Username}.", request.Username);
+                return Unauthorized(new { Mensagem = "Nome de usuário ou senha inválidos" });
             }
-            return Unauthorized(new { Mensagem = "Nome de usuário ou senha inválidos" });
         }
 
         [HttpGet("test-jwt")]
         [Authorize]
         public IActionResult TestJwt()
         {
-            // Verifica se o token JWT foi passado e se o usuário está autenticado
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                var userName = User.Identity.Name; // Obtém o nome do usuário do token
-                var userClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList(); // Obtém todas as claims do token
+                var userName = User.Identity.Name;
+                var userClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
 
                 _logger.LogInformation("Token JWT validado com sucesso para o usuário: {UserName}", userName);
 
@@ -106,13 +111,9 @@ namespace ForumFuncionario.Api.Controllers
             var authSigningKey = new SymmetricSecurityKey(key);
             var expiresTime = DateTime.UtcNow.AddHours(3);
 
-            // Adiciona a claim com o nome do usuário
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, username) // Adiciona a claim com o nome do usuário
-                }),
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }),
                 Expires = expiresTime,
                 SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256),
                 Issuer = _configuration["Jwt:Issuer"],
@@ -124,7 +125,6 @@ namespace ForumFuncionario.Api.Controllers
 
             return tokenHandler.WriteToken(token);
         }
-
     }
 
     public record LoginRequest(string Username, string Password);
