@@ -1,5 +1,5 @@
-﻿using ForumFuncionario.Api.Model.Entity;
-using ForumFuncionario.Api.Context;
+﻿using ForumFuncionario.Api.Context;
+using ForumFuncionario.Api.Model.Entity;
 using ForumFuncionario.Api.Repository.Interface;
 
 namespace ForumFuncionario.Api.Repository

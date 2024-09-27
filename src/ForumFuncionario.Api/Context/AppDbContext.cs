@@ -1,9 +1,11 @@
 ﻿using ForumFuncionario.Api.Model.Entity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ForumFuncionario.Api.Context
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     {
         // Construtor que chama o construtor base do DbContext com as opções
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -12,6 +14,9 @@ namespace ForumFuncionario.Api.Context
 
         // Define as entidades que serão mapeadas para o banco de dados
         public DbSet<Post> Posts { get; set; }
+        public DbSet<IdentityRole<int>> Role { get; set; }
+        public DbSet<AppUser> AppUser { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

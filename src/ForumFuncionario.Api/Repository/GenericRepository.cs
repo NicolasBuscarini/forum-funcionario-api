@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using ForumFuncionario.Api.Context;
+﻿using ForumFuncionario.Api.Context;
 using ForumFuncionario.Api.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ForumFuncionario.Api.Repository
 {

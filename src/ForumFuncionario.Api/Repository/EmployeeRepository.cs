@@ -19,7 +19,7 @@ namespace ForumFuncionario.Api.Repository
                                     WHEN RA_FILIAL = '0101' THEN 'ANÁPOLIS-GO' 
                                     WHEN RA_FILIAL = '0103' THEN 'SÃO PAULO-SP'
                                     WHEN RA_FILIAL = '0201' THEN 'S.B.C-SP'
-                                    ELSE 'OUTRO' -- Adicione um caso default se necessário
+                                    ELSE 'OUTRO'
                                 END AS filial, 
                                 CTT_DESC01 AS Descricao
                             FROM SRA010 AS SRA 
@@ -33,6 +33,21 @@ namespace ForumFuncionario.Api.Repository
                             ORDER BY RA_FILIAL, DAY(RA_NASC)";
 
             return await dbConnection.QueryAsync<Employee>(sql);
+        }
+
+        // Ajustado para retornar uma única entidade baseada no nome do funcionário
+        public async Task<Employee> GetEmployeeByNameAsync(string raNome)
+        {
+            using IDbConnection dbConnection = new SqlConnection(connectionString);
+            var sql = @"SELECT 
+                            RA_NOME AS Nome, 
+                            RA_MAT AS Matricula 
+                        FROM SRA010 
+                        WHERE D_E_L_E_T_ <> '*' 
+                        AND RA_NOME = @raNome";
+
+            // QuerySingleOrDefaultAsync retorna um único registro ou null
+            return await dbConnection.QuerySingleOrDefaultAsync<Employee>(sql, new { raNome });
         }
     }
 }

@@ -7,5 +7,6 @@
         public int Mes { get; set; }
         public string Filial { get; set; }
         public string Descricao { get; set; }
+        public string Matricula { get; set; }
     }
 }

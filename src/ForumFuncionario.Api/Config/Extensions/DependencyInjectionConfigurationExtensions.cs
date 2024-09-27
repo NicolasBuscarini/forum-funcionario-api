@@ -1,7 +1,7 @@
-﻿using ForumFuncionario.Api.Repository.Interface;
-using ForumFuncionario.Api.Repository;
-using ForumFuncionario.Api.Service.Interface;
+﻿using ForumFuncionario.Api.Repository;
+using ForumFuncionario.Api.Repository.Interface;
 using ForumFuncionario.Api.Service;
+using ForumFuncionario.Api.Service.Interface;
 
 namespace ForumFuncionario.Api.Config.Extensions
 {
@@ -12,9 +12,8 @@ namespace ForumFuncionario.Api.Config.Extensions
             // Injeção de dependência para repositórios e serviços
             services.AddSingleton<IEmployeeRepository>(provider =>
                 new EmployeeRepository(configuration.GetConnectionString("DefaultConnection")!));
-            services.AddSingleton<IAuthRepository>(provider =>
-                new AuthRepository(configuration.GetConnectionString("DefaultConnection")!));
             services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IPostService, PostService>();
