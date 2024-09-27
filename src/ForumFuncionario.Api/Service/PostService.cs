@@ -1,20 +1,11 @@
 ﻿using ForumFuncionario.Api.Model.Entity;
 using ForumFuncionario.Api.Model.Enum;
 using ForumFuncionario.Api.Repository.Interface;
-using Microsoft.AspNetCore.Http;
+using ForumFuncionario.Api.Service.Interface;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace ForumFuncionario.Api.Service
 {
-    public interface IPostService
-    {
-        Task<Post> CreatePostAsync(string title, string body, string categoria, List<string> tags, string username);
-        Task<List<Post>> GetPostsByCategoriaAsync(string categoria);
-        Task<List<Post>> GetLatestPostsByCategoriaAsync();
-    }
-
-
     public class PostService : IPostService
     {
         private readonly IPostRepository _postRepository;

@@ -1,5 +1,5 @@
 ﻿using ForumFuncionario.Api.Model;
-using ForumFuncionario.Api.Service;
+using ForumFuncionario.Api.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
