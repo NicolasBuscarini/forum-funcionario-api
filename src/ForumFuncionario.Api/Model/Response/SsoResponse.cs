@@ -9,7 +9,7 @@ namespace ForumFuncionario.Api.Model.Response
         public DateTime Expiration { get; set; }
 
         [JsonIgnore]
-        public AppUser AppUser { get; set; }
+        public UserApp AppUser { get; set; }
 
         public List<string> Roles { get; set; }
 
@@ -25,7 +25,7 @@ namespace ForumFuncionario.Api.Model.Response
             Roles = roles;
         }
 
-        public SsoResponse(string accessToken, DateTime expiration, List<string> roles, AppUser user)
+        public SsoResponse(string accessToken, DateTime expiration, List<string> roles, UserApp user)
         {
             Token = accessToken;
             Expiration = expiration;

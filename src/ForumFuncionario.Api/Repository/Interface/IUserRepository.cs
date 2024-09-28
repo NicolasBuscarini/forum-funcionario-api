@@ -3,7 +3,8 @@
     /// <summary>
     /// Interface for the repository of users.
     /// </summary>
-    public interface IUserRepository : IGenericRepository<AppUser, int>
+    public interface IUserRepository : IGenericRepository<UserApp, int>
     {
+        Task<UserApp?> GetUserByUsernameAsync(string username);
     }
 }

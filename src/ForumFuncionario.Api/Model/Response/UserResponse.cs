@@ -8,7 +8,7 @@
         {
         }
 
-        public UserResponse(AppUser user)
+        public UserResponse(UserApp user)
         {
             UserName = user.UserName;
         }

@@ -24,7 +24,7 @@ namespace ForumFuncionario.Api.Config.Extensions
             services.AddScoped<IPostService, PostService>();
             services.AddScoped<IAuthService, AuthService>();
 
-            services.AddIdentity<AppUser, IdentityRole<int>>()
+            services.AddIdentity<UserApp, IdentityRole<int>>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 

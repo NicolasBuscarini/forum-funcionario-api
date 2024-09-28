@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-public class AppUser : IdentityUser<int>
+public class UserApp : IdentityUser<int>
 {
     public required string RaNome { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using ForumFuncionario.Api.Model.Request;
+﻿using ForumFuncionario.Api.Model.Entity;
+using ForumFuncionario.Api.Model.Request;
 using ForumFuncionario.Api.Model.Response;
 using ForumFuncionario.Api.Repository;
 using ForumFuncionario.Api.Repository.Interface;
@@ -28,20 +29,56 @@ namespace ForumFuncionario.Api.Service
         ILogger<AuthService> logger,
         IUserRepository userRepository,
         IConfiguration configuration,
-        UserManager<AppUser> userManager,
+        UserManager<UserApp> userManager,
         IHttpContextAccessor httpContextAccessor,
         IUserProtheusRepository userProtheusRepository) : IAuthService
     {
 
         /// <summary>
-        /// Retrieves a list of all users.
+        /// Retrieves a user from Protheus by their username.
         /// </summary>
-        /// <returns>A list of all users.</returns>
-        public async Task<List<AppUser>> ListUsers()
+        /// <param name="username">The username to search for.</param>
+        /// <returns>The user from Protheus if found, otherwise null.</returns>
+        public async Task<UserProtheus?> GetUserProtheusByUsername(string username)
         {
             try
             {
-                List<AppUser> listUsers = await userRepository.ListAll().ToListAsync();
+                return await userProtheusRepository.GetUserProtheusByUsernameAsync(username);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error occurred while retrieving Protheus user by username: {username}.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a user from the application by their username.
+        /// </summary>
+        /// <param name="username">The username to search for.</param>
+        /// <returns>The user from the application if found, otherwise null.</returns>
+        public async Task<UserApp?> GetUserAppByUsername(string username)
+        {
+            try
+            {
+                return await userRepository.GetUserByUsernameAsync(username);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error occurred while retrieving application user by username: {username}.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a list of all users.
+        /// </summary>
+        /// <returns>A list of all users.</returns>
+        public async Task<List<UserApp>> ListUsers()
+        {
+            try
+            {
+                List<UserApp> listUsers = await userRepository.ListAll().ToListAsync();
                 return listUsers;
             }
             catch (Exception ex)
@@ -56,11 +93,11 @@ namespace ForumFuncionario.Api.Service
         /// </summary>
         /// <param name="userId">The ID of the user to retrieve.</param>
         /// <returns>The user with the specified ID.</returns>
-        public async Task<AppUser> GetUserById(int userId)
+        public async Task<UserApp> GetUserById(int userId)
         {
             try
             {
-                AppUser user = await userRepository.GetByIdAsync(userId);
+                UserApp user = await userRepository.GetByIdAsync(userId);
                 return user ?? throw new ArgumentException("User does not exist.");
             }
             catch (Exception ex)
@@ -95,11 +132,11 @@ namespace ForumFuncionario.Api.Service
         /// </summary>
         /// <param name="user">The user to update.</param>
         /// <returns>The number of affected rows.</returns>
-        public async Task<int> UpdateUser(AppUser user)
+        public async Task<int> UpdateUser(UserApp user)
         {
             try
             {
-                AppUser findUser = await userRepository.GetByIdAsync(user.Id) ?? throw new ArgumentException("User not found.");
+                UserApp findUser = await userRepository.GetByIdAsync(user.Id) ?? throw new ArgumentException("User not found.");
                 findUser.Email = user.Email;
                 findUser.UserName = user.UserName;
                 return await userRepository.UpdateAsync(findUser, findUser.Id);
@@ -120,7 +157,7 @@ namespace ForumFuncionario.Api.Service
         {
             try
             {
-                AppUser findUser = await userRepository.GetByIdAsync(userId) ?? throw new ArgumentException("User not found.");
+                UserApp findUser = await userRepository.GetByIdAsync(userId) ?? throw new ArgumentException("User not found.");
                 await userRepository.DeleteAsync(findUser, findUser.Id);
                 return true;
             }
@@ -155,7 +192,7 @@ namespace ForumFuncionario.Api.Service
                 }
 
                 // Cria um novo usuário
-                AppUser user = new()
+                UserApp user = new()
                 {
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = signUpDto.Username,
@@ -196,7 +233,7 @@ namespace ForumFuncionario.Api.Service
         {
             try
             {
-                var boolProperties = typeof(AppUser).GetProperties().Where(p => p.PropertyType == typeof(bool));
+                var boolProperties = typeof(UserApp).GetProperties().Where(p => p.PropertyType == typeof(bool));
                 await AddUserToRoleAsync(userId, "Admin", boolProperties);
             }
             catch (Exception ex)
@@ -210,7 +247,7 @@ namespace ForumFuncionario.Api.Service
         {
             try
             {
-                AppUser user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new ArgumentException("User not found.");
+                UserApp user = await userManager.FindByIdAsync(userId.ToString()) ?? throw new ArgumentException("User not found.");
                 await userManager.AddToRoleAsync(user, roleName);
 
                 //if (propertyInfos != null)
@@ -236,8 +273,11 @@ namespace ForumFuncionario.Api.Service
         /// Signs in a user.
         /// </summary>
         /// <param name="signInDto">The DTO containing sign in information.</param>
-        /// <returns>The SSO DTO containing the authentication token and user information.</returns>
-        public async Task<SsoResponse> SignIn(SignInRequest signInDto)
+        /// <param name="clientIp"></param>
+        /// <returns>The SSO DTO containing the authentication token and user information.</returns>        
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<SsoResponse> SignIn(SignInRequest signInDto, string clientIp)
         {
             try
             {
@@ -254,6 +294,7 @@ namespace ForumFuncionario.Api.Service
                     new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new(ClaimTypes.Email, user.Email!),
                     new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new("client_ip", clientIp) // Custom claim for client IP
                 };
 
                 authClaims.AddRange(userRolesList.Select(userRole => new Claim(ClaimTypes.Role, userRole)));
@@ -278,15 +319,16 @@ namespace ForumFuncionario.Api.Service
             }
         }
 
+
         /// <summary>
         /// Retrieves the currently authenticated user.
         /// </summary>
         /// <returns>The currently authenticated user.</returns>
-        public async Task<AppUser> GetCurrentUser()
+        public async Task<UserApp> GetCurrentUser()
         {
             try
             {
-                AppUser user = (await userManager.GetUserAsync(httpContextAccessor.HttpContext!.User))!;
+                UserApp user = (await userManager.GetUserAsync(httpContextAccessor.HttpContext!.User))!;
                 return user;
             }
             catch (Exception ex)

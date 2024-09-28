@@ -31,7 +31,7 @@ namespace ForumFuncionario.Api.Controllers
                 return HandleBadRequest(ModelState);
             }
 
-            var username = User.Identity!.Name ?? "Anonymous";
+            var username = User.Identity!.Name ?? "Anônimo";
             _logger.LogInformation($"Iniciando a criação de um post para o usuário {username}");
 
             try
