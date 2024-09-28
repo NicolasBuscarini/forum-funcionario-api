@@ -9,7 +9,17 @@ namespace ForumFuncionario.Api.Config.Extensions
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "JWT Authentication API", Version = "v1" });
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "API de Funcionários",
+                    Description = "Documentação da API do Fórum de Funcionários",
+                });
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme",
@@ -18,6 +28,7 @@ namespace ForumFuncionario.Api.Config.Extensions
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header
                 });
+
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
