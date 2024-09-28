@@ -30,7 +30,7 @@ namespace ForumFuncionario.Api.Service
         IConfiguration configuration,
         UserManager<AppUser> userManager,
         IHttpContextAccessor httpContextAccessor,
-        EmployeeRepository employeeRepository) : IAuthService
+        IUserProtheusRepository userProtheusRepository) : IAuthService
     {
 
         /// <summary>
@@ -141,8 +141,8 @@ namespace ForumFuncionario.Api.Service
             try
             {
                 // Verifica se o funcionário existe na tabela de funcionários
-                var employee = await employeeRepository.GetEmployeeByNameAsync(signUpDto.Username);
-                if (employee == null)
+                var userProtheus = await userProtheusRepository.GetUserProtheusByUsernameAsync(signUpDto.Username);
+                if (userProtheus == null)
                 {
                     throw new ArgumentException("Usuário não possui cadastro na tabela de funcionários.");
                 }
@@ -159,8 +159,9 @@ namespace ForumFuncionario.Api.Service
                 {
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = signUpDto.Username,
-                    RaMatricula = signUpDto.RaMatricula,
-                    RaNome = signUpDto.Username
+                    UserProtheusId = userProtheus.ProtheusId,
+                    RaNome = signUpDto.Username,
+                    Email = userProtheus.Email
                 };
 
                 var result = await userManager.CreateAsync(user, signUpDto.Password);

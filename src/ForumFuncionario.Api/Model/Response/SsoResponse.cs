@@ -4,7 +4,7 @@ namespace ForumFuncionario.Api.Model.Response
 {
     public class SsoResponse
     {
-        public string AccessToken { get; set; }
+        public string Token { get; set; }
 
         public DateTime Expiration { get; set; }
 
@@ -20,14 +20,14 @@ namespace ForumFuncionario.Api.Model.Response
 
         public SsoResponse(string accessToken, DateTime expiration, List<string> roles)
         {
-            AccessToken = accessToken;
+            Token = accessToken;
             Expiration = expiration;
             Roles = roles;
         }
 
         public SsoResponse(string accessToken, DateTime expiration, List<string> roles, AppUser user)
         {
-            AccessToken = accessToken;
+            Token = accessToken;
             Expiration = expiration;
             Roles = roles;
             AppUser = user;

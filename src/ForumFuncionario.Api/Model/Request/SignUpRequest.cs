@@ -7,9 +7,6 @@ namespace ForumFuncionario.Api.Model.Request
         [Required(ErrorMessage = "User Name is required")]
         public required string Username { get; set; }
 
-        [Required(ErrorMessage = "RaMatricula is required")]
-        public required string RaMatricula { get; set; }
-
         [Required(ErrorMessage = "Password is required")]
         public required string Password { get; set; }
 
