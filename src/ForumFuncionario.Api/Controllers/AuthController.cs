@@ -20,7 +20,7 @@ namespace ForumFuncionario.Api.Controllers
         /// <returns>Uma resposta indicando o status do cadastro e uma mensagem correspondente.</returns>
         [AllowAnonymous]
         [HttpGet("VerificarCadastro/{usuario}")]
-        [ProducesResponseType(typeof(VerificarCadastroResponse), 200)]   // Sucesso
+        [ProducesResponseType(typeof(BaseResponse<VerificarCadastroResponse>), 200)]   // Sucesso
         [ProducesResponseType(typeof(BaseResponse<string>), 404)]     // Não Encontrado
         [ProducesResponseType(typeof(BaseResponse<string>), 500)]     // Erro Interno do Servidor
         public async Task<IActionResult> VerificarCadastro(string usuario)

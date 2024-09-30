@@ -310,7 +310,7 @@ namespace ForumFuncionario.Api.Service
                     signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
 
-                return new SsoResponse(new JwtSecurityTokenHandler().WriteToken(token), expiresTime, userRolesList, user);
+                return new SsoResponse(new JwtSecurityTokenHandler().WriteToken(token), expiresTime, userRolesList, user, clientIp);
             }
             catch (Exception ex)
             {
