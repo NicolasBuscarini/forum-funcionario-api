@@ -135,5 +135,20 @@ namespace ForumFuncionario.Api.Controllers
             _logger.LogError(message);
             return StatusCode(500, new BaseResponse<bool> { Error = new ErrorResponse(500) { Message = message } });
         }
+
+        /// <summary>
+        /// Trata um erro 401 (Não Autorizado) e registra a mensagem de erro.
+        /// </summary>
+        /// <param name="message">Mensagem de erro.</param>
+        /// <returns>Resposta Unauthorized com a mensagem de erro.</returns>
+        protected IActionResult HandleUnauthorized(string message)
+        {
+            _logger.LogWarning("Unauthorized: {message}", message);
+            return Unauthorized(new BaseResponse<bool>
+            {
+                Error = new ErrorResponse(401) { Message = message }
+            });
+        }
+
     }
 }
