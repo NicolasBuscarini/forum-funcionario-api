@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ForumFuncionario.Api.Model.Enum
+namespace ForumFuncionario.Api.Model.Enumerable
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum CategoriaEnum

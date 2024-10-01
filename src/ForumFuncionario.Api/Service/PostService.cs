@@ -1,5 +1,6 @@
 ﻿using ForumFuncionario.Api.Model.Entity;
-using ForumFuncionario.Api.Model.Enum;
+using ForumFuncionario.Api.Model.Enumerable;
+using ForumFuncionario.Api.Model.Request;
 using ForumFuncionario.Api.Repository.Interface;
 using ForumFuncionario.Api.Service.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -17,21 +18,17 @@ namespace ForumFuncionario.Api.Service
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Post> CreatePostAsync(string title, string conteudo, string categoria, List<string> tags, string username)
+        public async Task<Post> CreatePostAsync(CreatePostRequest request, string username)
         {
-            // Try to parse the categoria string to CategoriaEnum
-            if (!Enum.TryParse<CategoriaEnum>(categoria, true, out var categoriaEnum))
-            {
-                throw new ArgumentException($"Categoria '{categoria}' is not valid.");
-            }
+            request.Validate();
 
             var post = new Post
             {
                 Ativo = true,
-                Titulo = title,
-                Conteudo = conteudo,
-                Categoria = categoriaEnum,
-                Tags = tags,
+                Titulo = request.Title,
+                Conteudo = request.Body,
+                Categoria = Enum.Parse<CategoriaEnum>(request.Categoria),
+                Tags = request.Tags,
                 Autor = username,
                 DataCriacao = DateTime.UtcNow
             };
@@ -48,9 +45,10 @@ namespace ForumFuncionario.Api.Service
             }
 
             // Usando o repositório para buscar os posts pela categoria
-            return await _postRepository.ListAll().OrderByDescending(c => c.DataCriacao)
-                .Where(post => post.Categoria == categoriaEnum)
-                .ToListAsync();
+            return await _postRepository.ListAll()
+                    .Where(post => post.Categoria == categoriaEnum)
+                    .OrderByDescending(c => c.DataCriacao)
+                    .ToListAsync();
         }
 
         public async Task<List<Post>> GetLatestPostsByCategoriaAsync()

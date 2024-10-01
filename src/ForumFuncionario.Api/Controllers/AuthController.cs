@@ -1,4 +1,4 @@
-﻿using ForumFuncionario.Api.Model.Enum;
+﻿using ForumFuncionario.Api.Model.Enumerable;
 using ForumFuncionario.Api.Model.Request;
 using ForumFuncionario.Api.Model.Response;
 using ForumFuncionario.Api.Service.Interface;

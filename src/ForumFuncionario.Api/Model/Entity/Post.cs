@@ -1,4 +1,4 @@
-﻿using ForumFuncionario.Api.Model.Enum;
+﻿using ForumFuncionario.Api.Model.Enumerable;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

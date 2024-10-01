@@ -114,6 +114,22 @@ namespace ForumFuncionario.Api.Controllers
         }
 
         /// <summary>
+        /// Trata um erro 400 (Solicitação Inválida) e registra uma mensagem de erro.
+        /// </summary>
+        /// <param name="errorMessage">Mensagem de erro a ser registrada.</param>
+        /// <returns>Resposta BadRequest com a mensagem de erro.</returns>
+        protected IActionResult HandleBadRequest(string errorMessage)
+        {
+            _logger.LogWarning("Bad request: {errorMessage}", errorMessage);
+
+            return BadRequest(new BaseResponse<bool>
+            {
+                Error = new ErrorResponse(400) { Message = "A solicitação contém dados inválidos.", Details = new List<string> { errorMessage } }
+            });
+        }
+
+
+        /// <summary>
         /// Trata um erro 500 (Erro Interno do Servidor) e registra a mensagem de erro.
         /// </summary>
         /// <typeparam name="T">Tipo dos dados.</typeparam>

@@ -15,15 +15,17 @@ namespace ForumFuncionario.Api.Controllers
         /// Cria um novo post com base nas informações fornecidas no corpo da requisição.
         /// </summary>
         /// <param name="request">Requisição contendo título, corpo, categoria e tags do post.</param>
-        /// <returns>O post criado, se a operação for bem-sucedida.</returns>
+        /// <returns>Uma ação que representa o resultado da criação do post.</returns>
         /// <response code="200">Post criado com sucesso.</response>
         /// <response code="400">Requisição inválida, problema com os dados fornecidos.</response>
+        /// <response code="401">Usuário não autorizado para criar o post.</response>
         /// <response code="500">Erro inesperado ao criar o post.</response>
         [HttpPost]
         [Authorize]
         [ProducesResponseType(typeof(BaseResponse<Post>), 200)]
         [ProducesResponseType(typeof(BaseResponse<string>), 400)]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 500)]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 401)]
+        [ProducesResponseType(typeof(BaseResponse<string>), 500)]
         public async Task<IActionResult> CreatePost([FromBody] CreatePostRequest request)
         {
             if (!ModelState.IsValid)
@@ -31,12 +33,12 @@ namespace ForumFuncionario.Api.Controllers
                 return HandleBadRequest(ModelState);
             }
 
-            var username = User.Identity!.Name ?? "Anônimo";
+            var username = User.Identity?.Name ?? "Anônimo";
             _logger.LogInformation($"Iniciando a criação de um post para o usuário {username}");
 
             try
             {
-                var post = await postService.CreatePostAsync(request.Title, request.Body, request.Categoria, request.Tags, username);
+                var post = await postService.CreatePostAsync(request, username);
 
                 if (post == null)
                 {
@@ -46,6 +48,15 @@ namespace ForumFuncionario.Api.Controllers
 
                 _logger.LogInformation("Post criado com sucesso.");
                 return CreateResponse(post, nameof(CreatePost), null);
+            }
+            catch (ArgumentException argEx)
+            {
+                _logger.LogWarning(argEx, "Erro de validação na criação do post.");
+                return HandleBadRequest(argEx.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized("Acesso não autorizado ao criar o post.");
             }
             catch (Exception ex)
             {
@@ -78,7 +89,7 @@ namespace ForumFuncionario.Api.Controllers
                 if (posts == null || !posts.Any())
                 {
                     _logger.LogInformation("Nenhum post encontrado para esta categoria.");
-                    return HandleNotFound<Post>("Nenhum post encontrado para essa categoria.");
+                    return HandleNotFound<Post>("Nenhum post encontrado para a categoria informada.");
                 }
 
                 var metaData = new MetaData(
@@ -91,10 +102,15 @@ namespace ForumFuncionario.Api.Controllers
                 _logger.LogInformation("Posts recuperados com sucesso.");
                 return CreateResponse(posts, metaData, nameof(GetPostsByCategoria), null);
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Erro de validação na categoria informada.");
+                return HandleBadRequest(ex.Message); 
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao buscar posts pela categoria.");
-                return HandleServerError("Erro inesperado ao buscar posts por categoria.");
+                return HandleServerError("Erro inesperado ao buscar posts por categoria. Por favor, tente novamente mais tarde.");
             }
         }
 

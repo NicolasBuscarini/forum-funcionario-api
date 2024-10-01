@@ -1,4 +1,4 @@
-﻿namespace ForumFuncionario.Api.Model.Enum
+﻿namespace ForumFuncionario.Api.Model.Enumerable
 {
     public enum CadastroStatus
     {
