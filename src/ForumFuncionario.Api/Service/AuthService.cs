@@ -6,10 +6,12 @@ using ForumFuncionario.Api.Service.Interface;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using System.Web;
 
 namespace ForumFuncionario.Api.Service
 {
@@ -319,7 +321,7 @@ namespace ForumFuncionario.Api.Service
         }
 
         /// <summary>
-        /// Sends a password reset email with a verification code to the user.
+        /// Sends a password reset email with a link to the user.
         /// </summary>
         /// <param name="username">The email address of the user requesting the password reset.</param>
         /// <returns>True if the email was successfully sent; otherwise, false.</returns>
@@ -334,17 +336,25 @@ namespace ForumFuncionario.Api.Service
                     throw new ArgumentException("Usuário não encontrado.");
                 }
 
-                // Gera um código único para recuperação de senha
-                var resetCode = await userManager.GeneratePasswordResetTokenAsync(user);
+                // Gera um token de redefinição de senha
+                var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
 
-                // Envia o email com o código de recuperação
-                var emailSent = await emailService.SendEmailAsync(user.Email, "Recuperação de Senha", $"Seu código de recuperação de senha é: {resetCode}");
+                // Codifica o token para ser seguro em URLs
+                var encodedToken = HttpUtility.UrlEncode(resetToken);
+
+                // Cria o link de redefinição de senha
+                var resetLink = $"{configuration["Frontend"]}/reset-password?token={encodedToken}&username={user.UserName}";
+
+                // Envia o email com o link de redefinição de senha
+                var emailSent = await emailService.SendEmailAsync(user.Email, "Recuperação de Senha",
+                    $"Clique no link abaixo para redefinir sua senha: <a href='{resetLink}'>Redefinir Senha</a>");
+
                 if (!emailSent)
                 {
                     throw new Exception("Falha ao enviar o email de recuperação.");
                 }
 
-                logger.LogInformation($"Código de recuperação de senha enviado para o email: {user.Email}.");
+                logger.LogInformation($"Link de recuperação de senha enviado para o email: {user.Email}.");
                 return true;
             }
             catch (Exception ex)
@@ -355,15 +365,19 @@ namespace ForumFuncionario.Api.Service
         }
 
         /// <summary>
-        /// Verifies if the password reset token is valid for the specified user.
+        /// Resets the user's password after verifying the reset token.
         /// </summary>
-        /// <param name="username">The email address of the user requesting password reset verification.</param>
+        /// <param name="username">The email address of the user requesting password reset.</param>
         /// <param name="resetToken">The password reset token provided by the user.</param>
-        /// <returns>True if the token is valid; otherwise, false.</returns>
-        public async Task<bool> VerificarPasswordResetToken(string username, string resetToken)
+        /// <param name="newPassword">The new password to set.</param>
+        /// <returns>True if the password was successfully reset; otherwise, false.</returns>
+        public async Task<bool> RedefinirSenhaAsync(string username, string resetToken, string newPassword)
         {
             try
             {
+                // Decodifica o token recebido da URL
+                var decodedToken = HttpUtility.UrlDecode(resetToken);
+
                 // Verifica se o email pertence a algum usuário
                 var user = await userManager.FindByNameAsync(username);
                 if (user == null)
@@ -371,21 +385,22 @@ namespace ForumFuncionario.Api.Service
                     throw new ArgumentException("Usuário não encontrado.");
                 }
 
-                // Verifica a validade do token de redefinição de senha
-                var isValidToken = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", resetToken);
+                // Verifica e redefine a senha do usuário
+                var result = await userManager.ResetPasswordAsync(user, decodedToken, newPassword);
 
-                if (!isValidToken)
+                if (!result.Succeeded)
                 {
-                    logger.LogWarning($"Token inválido para o usuário: {username}.");
-                    return false;
+                    var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                    logger.LogWarning($"Falha ao redefinir a senha para o usuário: {username}. Motivo: {errorMessage}");
+                    throw new ArgumentException($"Falha ao redefinir a senha. Motivo: {errorMessage}");
                 }
 
-                logger.LogInformation($"Token válido para o usuário: {username}.");
+                logger.LogInformation($"Senha redefinida com sucesso para o usuário: {username}.");
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao verificar o token de recuperação de senha para o username: {username}.");
+                logger.LogError(ex, $"Erro ao redefinir a senha para o username: {username}.");
                 throw;
             }
         }

@@ -369,13 +369,13 @@ namespace ForumFuncionario.Api.Controllers
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]   // Sucesso
         [ProducesResponseType(typeof(BaseResponse<string>), 404)] // Usuário não encontrado
         [ProducesResponseType(typeof(BaseResponse<string>), 500)] // Erro Interno do Servidor
-        public async Task<IActionResult> ForgotPassword([FromBody] Microsoft.AspNetCore.Identity.Data.ForgotPasswordRequest forgotPasswordRequest)
+        public async Task<IActionResult> ForgotPassword([FromBody] Model.Request.ForgotPasswordRequest forgotPasswordRequest)
         {
             try
             {
-                logger.LogInformation("Processando solicitação de recuperação de senha para o usuário {Email}", forgotPasswordRequest.Email);
+                logger.LogInformation("Processando solicitação de recuperação de senha para o usuário {Email}", forgotPasswordRequest.Username);
 
-                var response = await authService.EsqueciSenha(forgotPasswordRequest.Email);
+                var response = await authService.EsqueciSenha(forgotPasswordRequest.Username);
                 if (response)
                 {
                     logger.LogInformation("E-mail de recuperação de senha enviado com sucesso.");
@@ -383,7 +383,7 @@ namespace ForumFuncionario.Api.Controllers
                 }
                 else
                 {
-                    logger.LogWarning("Usuário {Email} não encontrado.", forgotPasswordRequest.Email);
+                    logger.LogWarning("Usuário {Username} não encontrado.", forgotPasswordRequest.Username);
                     return HandleNotFound<string>("Usuário não encontrado.");
                 }
             }
@@ -415,7 +415,13 @@ namespace ForumFuncionario.Api.Controllers
             {
                 logger.LogInformation("Processando redefinição de senha...");
 
-                var isSuccess = await authService.VerificarPasswordResetToken(resetPasswordRequest.Token, resetPasswordRequest.NewPassword);
+                // Chama o serviço de autenticação para redefinir a senha
+                var isSuccess = await authService.RedefinirSenhaAsync(
+                    resetPasswordRequest.Username,
+                    resetPasswordRequest.Token,
+                    resetPasswordRequest.Password
+                );
+
                 if (isSuccess)
                 {
                     logger.LogInformation("Senha redefinida com sucesso.");
@@ -427,13 +433,18 @@ namespace ForumFuncionario.Api.Controllers
                     return HandleBadRequest("Falha ao redefinir a senha. Verifique os dados e o token fornecido.");
                 }
             }
+            catch (ArgumentException ex)
+            {
+                // Captura o ArgumentException e retorna a mensagem de erro detalhada para o cliente
+                logger.LogWarning(ex, "Erro ao redefinir a senha: dados inválidos.");
+                return HandleBadRequest(ex.Message); 
+            }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Ocorreu um erro ao redefinir a senha.");
                 return HandleServerError("Um erro inesperado ocorreu ao redefinir a senha.");
             }
         }
-
 
     }
 }

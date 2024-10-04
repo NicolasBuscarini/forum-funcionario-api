@@ -49,7 +49,8 @@ namespace ForumFuncionario.Api.Service
                     Port = smtpPort,
                     Credentials = new NetworkCredential(smtpUser, smtpPass),
                     EnableSsl = enableSsl,
-                    Timeout = 60000 // 60 seconds timeout
+                    Timeout = 60000, // 60 seconds timeout
+                    UseDefaultCredentials = false
                 };
 
                 // Send the email

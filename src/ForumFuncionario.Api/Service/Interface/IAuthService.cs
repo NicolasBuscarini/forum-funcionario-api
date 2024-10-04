@@ -18,6 +18,6 @@ namespace ForumFuncionario.Api.Service.Interface
         Task<UserApp?> GetUserAppByUsername(string username);
         Task<UserProtheus?> GetUserProtheusByUsername(string username);
         Task<bool> EsqueciSenha(string username);
-        Task<bool> VerificarPasswordResetToken(string username, string resetToken);
+        Task<bool> RedefinirSenhaAsync(string username, string resetToken, string newPassword);
     }
 }
