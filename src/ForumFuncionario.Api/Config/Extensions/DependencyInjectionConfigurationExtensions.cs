@@ -23,6 +23,7 @@ namespace ForumFuncionario.Api.Config.Extensions
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IPostService, PostService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailService, SmtpEmailService>();
 
             services.AddIdentity<UserApp, IdentityRole<int>>()
                 .AddEntityFrameworkStores<AppDbContext>()

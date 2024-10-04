@@ -1,7 +1,6 @@
 ﻿using ForumFuncionario.Api.Model.Entity;
 using ForumFuncionario.Api.Model.Request;
 using ForumFuncionario.Api.Model.Response;
-using ForumFuncionario.Api.Repository;
 using ForumFuncionario.Api.Repository.Interface;
 using ForumFuncionario.Api.Service.Interface;
 using Microsoft.AspNetCore.Identity;
@@ -31,7 +30,8 @@ namespace ForumFuncionario.Api.Service
         IConfiguration configuration,
         UserManager<UserApp> userManager,
         IHttpContextAccessor httpContextAccessor,
-        IUserProtheusRepository userProtheusRepository) : IAuthService
+        IUserProtheusRepository userProtheusRepository,
+        IEmailService emailService) : IAuthService
     {
 
         /// <summary>
@@ -224,7 +224,6 @@ namespace ForumFuncionario.Api.Service
             }
         }
 
-
         /// <summary>
         /// Adds a user to the administrator role.
         /// </summary>
@@ -315,6 +314,78 @@ namespace ForumFuncionario.Api.Service
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error occurred during user sign in.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends a password reset email with a verification code to the user.
+        /// </summary>
+        /// <param name="username">The email address of the user requesting the password reset.</param>
+        /// <returns>True if the email was successfully sent; otherwise, false.</returns>
+        public async Task<bool> EsqueciSenha(string username)
+        {
+            try
+            {
+                // Verifica se o email pertence a algum usuário
+                var user = await userManager.FindByNameAsync(username);
+                if (user == null)
+                {
+                    throw new ArgumentException("Usuário não encontrado.");
+                }
+
+                // Gera um código único para recuperação de senha
+                var resetCode = await userManager.GeneratePasswordResetTokenAsync(user);
+
+                // Envia o email com o código de recuperação
+                var emailSent = await emailService.SendEmailAsync(user.Email, "Recuperação de Senha", $"Seu código de recuperação de senha é: {resetCode}");
+                if (!emailSent)
+                {
+                    throw new Exception("Falha ao enviar o email de recuperação.");
+                }
+
+                logger.LogInformation($"Código de recuperação de senha enviado para o email: {user.Email}.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Erro ao processar recuperação de senha para o username: {username}.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Verifies if the password reset token is valid for the specified user.
+        /// </summary>
+        /// <param name="username">The email address of the user requesting password reset verification.</param>
+        /// <param name="resetToken">The password reset token provided by the user.</param>
+        /// <returns>True if the token is valid; otherwise, false.</returns>
+        public async Task<bool> VerificarPasswordResetToken(string username, string resetToken)
+        {
+            try
+            {
+                // Verifica se o email pertence a algum usuário
+                var user = await userManager.FindByNameAsync(username);
+                if (user == null)
+                {
+                    throw new ArgumentException("Usuário não encontrado.");
+                }
+
+                // Verifica a validade do token de redefinição de senha
+                var isValidToken = await userManager.VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", resetToken);
+
+                if (!isValidToken)
+                {
+                    logger.LogWarning($"Token inválido para o usuário: {username}.");
+                    return false;
+                }
+
+                logger.LogInformation($"Token válido para o usuário: {username}.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Erro ao verificar o token de recuperação de senha para o username: {username}.");
                 throw;
             }
         }

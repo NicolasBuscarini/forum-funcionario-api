@@ -17,6 +17,7 @@ namespace ForumFuncionario.Api.Service.Interface
         Task<int> UpdateUser(UserApp user);
         Task<UserApp?> GetUserAppByUsername(string username);
         Task<UserProtheus?> GetUserProtheusByUsername(string username);
+        Task<bool> EsqueciSenha(string username);
+        Task<bool> VerificarPasswordResetToken(string username, string resetToken);
     }
-
 }

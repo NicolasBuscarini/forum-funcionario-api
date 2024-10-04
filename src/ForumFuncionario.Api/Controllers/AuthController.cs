@@ -3,6 +3,7 @@ using ForumFuncionario.Api.Model.Request;
 using ForumFuncionario.Api.Model.Response;
 using ForumFuncionario.Api.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ForumFuncionario.Api.Controllers
@@ -351,6 +352,88 @@ namespace ForumFuncionario.Api.Controllers
                 return HandleServerError("Um erro inesperado ocorreu ao recuperar o usuário.");
             }
         }
+
+        /// <summary>
+        /// Inicia o processo de recuperação de senha.
+        /// Envia um e-mail com um token para redefinir a senha do usuário.
+        /// </summary>
+        /// <param name="forgotPasswordRequest">Dados de solicitação de recuperação de senha, incluindo o nome de usuário ou e-mail.</param>
+        /// <returns>
+        /// Uma resposta indicando o sucesso da solicitação ou uma mensagem de erro.
+        /// </returns>
+        /// <response code="200">Solicitação de recuperação de senha processada com sucesso.</response>
+        /// <response code="404">Usuário não encontrado.</response>
+        /// <response code="500">Erro inesperado no servidor.</response>
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]   // Sucesso
+        [ProducesResponseType(typeof(BaseResponse<string>), 404)] // Usuário não encontrado
+        [ProducesResponseType(typeof(BaseResponse<string>), 500)] // Erro Interno do Servidor
+        public async Task<IActionResult> ForgotPassword([FromBody] Microsoft.AspNetCore.Identity.Data.ForgotPasswordRequest forgotPasswordRequest)
+        {
+            try
+            {
+                logger.LogInformation("Processando solicitação de recuperação de senha para o usuário {Email}", forgotPasswordRequest.Email);
+
+                var response = await authService.EsqueciSenha(forgotPasswordRequest.Email);
+                if (response)
+                {
+                    logger.LogInformation("E-mail de recuperação de senha enviado com sucesso.");
+                    return CreateResponse(true, nameof(ForgotPassword), null);
+                }
+                else
+                {
+                    logger.LogWarning("Usuário {Email} não encontrado.", forgotPasswordRequest.Email);
+                    return HandleNotFound<string>("Usuário não encontrado.");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ocorreu um erro ao processar a solicitação de recuperação de senha.");
+                return HandleServerError("Um erro inesperado ocorreu ao processar a solicitação de recuperação de senha.");
+            }
+        }
+
+        /// <summary>
+        /// Redefine a senha do usuário usando o token de redefinição.
+        /// </summary>
+        /// <param name="resetPasswordRequest">Dados do token e nova senha.</param>
+        /// <returns>
+        /// Uma resposta indicando se a redefinição foi bem-sucedida.
+        /// </returns>
+        /// <response code="200">Senha redefinida com sucesso.</response>
+        /// <response code="400">Token inválido ou dados inconsistentes.</response>
+        /// <response code="500">Erro inesperado no servidor.</response>
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]   // Sucesso (senha redefinida)
+        [ProducesResponseType(typeof(BaseResponse<string>), 400)] // Token inválido ou erro nos dados
+        [ProducesResponseType(typeof(BaseResponse<string>), 500)] // Erro Interno do Servidor
+        public async Task<IActionResult> ResetPassword([FromBody] Model.Request.ResetPasswordRequest resetPasswordRequest)
+        {
+            try
+            {
+                logger.LogInformation("Processando redefinição de senha...");
+
+                var isSuccess = await authService.VerificarPasswordResetToken(resetPasswordRequest.Token, resetPasswordRequest.NewPassword);
+                if (isSuccess)
+                {
+                    logger.LogInformation("Senha redefinida com sucesso.");
+                    return CreateResponse(true, nameof(ResetPassword), null);
+                }
+                else
+                {
+                    logger.LogWarning("Falha ao redefinir a senha: token inválido ou erro nos dados.");
+                    return HandleBadRequest("Falha ao redefinir a senha. Verifique os dados e o token fornecido.");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Ocorreu um erro ao redefinir a senha.");
+                return HandleServerError("Um erro inesperado ocorreu ao redefinir a senha.");
+            }
+        }
+
 
     }
 }
