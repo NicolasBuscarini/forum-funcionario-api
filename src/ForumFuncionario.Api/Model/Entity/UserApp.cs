@@ -8,4 +8,5 @@ public class UserApp : IdentityUser<int>
 
     public string? Discriminator { get; set; }
     public string Email { get; set; }
+    public byte[]? Foto { get; set; }
 }

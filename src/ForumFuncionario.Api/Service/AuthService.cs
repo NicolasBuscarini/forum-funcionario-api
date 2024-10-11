@@ -376,7 +376,7 @@ namespace ForumFuncionario.Api.Service
             try
             {
                 // Decodifica o token recebido da URL
-                var decodedToken = HttpUtility.UrlDecode(resetToken);
+                //var decodedToken = HttpUtility.UrlDecode(resetToken);
 
                 // Verifica se o email pertence a algum usuário
                 var user = await userManager.FindByNameAsync(username);
@@ -386,7 +386,7 @@ namespace ForumFuncionario.Api.Service
                 }
 
                 // Verifica e redefine a senha do usuário
-                var result = await userManager.ResetPasswordAsync(user, decodedToken, newPassword);
+                var result = await userManager.ResetPasswordAsync(user, resetToken, newPassword);
 
                 if (!result.Succeeded)
                 {

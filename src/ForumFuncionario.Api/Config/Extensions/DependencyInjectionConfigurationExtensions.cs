@@ -18,10 +18,13 @@ namespace ForumFuncionario.Api.Config.Extensions
                 new UserProtheusRepository(configuration.GetConnectionString("DefaultConnection")!));
 
             services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IRamalRepository, RamalRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IPostService, PostService>();
+            services.AddScoped<IRamalService, RamalService>();
+
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, SmtpEmailService>();
 

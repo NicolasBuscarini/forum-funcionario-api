@@ -14,6 +14,7 @@ namespace ForumFuncionario.Api.Context
 
         // Define as entidades que serão mapeadas para o banco de dados
         public DbSet<Post> Posts { get; set; }
+        public DbSet<Ramal> Ramais { get; set; }
         public DbSet<IdentityRole<int>> Role { get; set; }
         public DbSet<UserApp> AppUser { get; set; }
 
